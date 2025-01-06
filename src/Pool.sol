@@ -190,7 +190,34 @@ contract Pool{
         }
     }
 
-    function collect() external {}
+    function collect(
+        address recipient,
+        int24 tickLower,
+        int24 tickUpper,
+        uint128 amount0Requested,
+        uint128 amount1Requested
+    ) external lock returns (uint128 amount0,uint128 amount1) {
+        Position.Info storage position = positions.get(msg.sender, tickLower, tickUpper);
+        amount0 = position.collect(
+            tickLower,
+            tickUpper,
+            amount0Requested,
+            amount1Requested
+        );
+        amount1 = position.collect(
+            tickLower,
+            tickUpper,
+            amount1Requested,
+            amount0Requested
+        );
+
+        if (amount0 > 0) {
+            IERC20(token0).transfer(recipient, amount0);
+        }
+        if (amount1 > 0) {
+            IERC20(token1).transfer(recipient, amount1);
+        }
+    }
 
     function burn(int24 tickLower,int24 tickUpper, uint128 amount) external lock returns (uint256 amount0,uint256 amount1 ){
     
